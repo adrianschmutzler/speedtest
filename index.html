@@ -24,6 +24,8 @@ s.onupdate=function(data){ //callback to update data in UI
 }
 s.onend=function(aborted){ //callback for test ended/aborted
     I("startStopBtn").className=""; //show start button again
+    I("upBtn").className="";
+    I("downBtn").className="";
     if(aborted){ //if the test was aborted, clear the UI and prepare for new test
 		initUI();
     }
@@ -35,10 +37,34 @@ function startStop(){ //start/stop button pressed
 		s.abort();
 	}else{
 		//test is not running, begin
+		s.setParameter("test_order","IP_D_U");
 		s.start();
 		I("startStopBtn").className="running";
 	}
 }
+function startStopUp(){ //start/stop button pressed
+        if(s.getState()==3){
+                //speedtest is running, abort
+                s.abort();
+        }else{
+                //test is not running, begin
+		s.setParameter("test_order","IP_U");
+                s.start();
+                I("upBtn").className="running";
+        }
+}
+function startStopDown(){ //start/stop button pressed
+        if(s.getState()==3){
+                //speedtest is running, abort
+                s.abort();
+        }else{
+                //test is not running, begin
+		s.setParameter("test_order","IP_D");
+                s.start();
+                I("downBtn").className="running";
+        }
+}
+
 
 //function to (re)initialize UI
 function initUI(){
@@ -65,7 +91,7 @@ function I(id){return document.getElementById(id);}
 	h1{
 		color:#404040;
 	}
-	#startStopBtn{
+	#startStopBtn,#upBtn,#downBtn,#resetBtn{
 		display:inline-block;
 		margin:0 auto;
 		color:#6060AA;
@@ -79,19 +105,13 @@ function I(id){return document.getElementById(id);}
 		cursor:pointer;
 		box-shadow: 0 0 0 rgba(0,0,0,0.1), inset 0 0 0 rgba(0,0,0,0.1);
 	}
-	#startStopBtn:hover{
+	#startStopBtn:hover,#upBtn:hover,#downBtn:hover,#resetBtn:hover{
 		box-shadow: 0 0 2em rgba(0,0,0,0.1), inset 0 0 1em rgba(0,0,0,0.1);
 	}
-	#startStopBtn.running{
+	#startStopBtn.running,#upBtn.running,#downBtn.running{
 		background-color:#FF3030;
 		border-color:#FF6060;
 		color:#FFFFFF;
-	}
-	#startStopBtn:before{
-		content:"Start";
-	}
-	#startStopBtn.running:before{
-		content:"Abort";
 	}
 	#test{
 		margin-top:2em;
@@ -175,8 +195,11 @@ function I(id){return document.getElementById(id);}
 </style>
 </head>
 <body>
-<h1>LibreSpeed Example</h1>
-<div id="startStopBtn" onclick="startStop()"></div>
+<h1>LibreSpeed Test</h1>
+<div id="startStopBtn" onclick="startStop()">Full Test</div>
+<div id="downBtn" onclick="startStopDown()">Download</div>
+<div id="upBtn" onclick="startStopUp()">Upload</div>
+<div id="resetBtn" onclick="location.reload()">Reset</div>
 <div id="test">
     <div id="progressBar"><div id="progress"></div></div>
 	<div class="testGroup">
