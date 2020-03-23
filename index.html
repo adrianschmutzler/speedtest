@@ -19,16 +19,24 @@ s.onupdate=function(data){ //callback to update data in UI
     I("ulText").textContent=(data.testState==3&&data.ulStatus==0)?"...":data.ulStatus;
     I("pingText").textContent=data.pingStatus;
     I("jitText").textContent=data.jitterStatus;
-    var prog=(Number(data.dlProgress)*2+Number(data.ulProgress)*2+Number(data.pingProgress))/5;
+    var factor=2;
+    if(selectedOption("downtime")==0 || selectedOption("uptime")==0){
+        factor=4;
+    }
+    var prog=(Number(data.dlProgress)*factor+Number(data.ulProgress)*factor+Number(data.pingProgress))/5;
     I("progress").style.width=(100*prog)+"%";
 }
 s.onend=function(aborted){ //callback for test ended/aborted
     I("startStopBtn").className=""; //show start button again
-    I("upBtn").className="";
-    I("downBtn").className="";
     if(aborted){ //if the test was aborted, clear the UI and prepare for new test
 		initUI();
     }
+}
+
+function selectedOption(idselect){
+    var selector = I(idselect);
+    var value = selector[selector.selectedIndex].value;
+    return value;
 }
 
 function startStop(){ //start/stop button pressed
@@ -37,32 +45,21 @@ function startStop(){ //start/stop button pressed
 		s.abort();
 	}else{
 		//test is not running, begin
-		s.setParameter("test_order","IP_D_U");
+		var testorder = "IP";
+		var downtime = selectedOption("downtime");
+		var uptime = selectedOption("uptime");
+		if(downtime!=0){
+			testorder = testorder + "_D";
+		}
+		if(uptime!=0){
+			testorder = testorder + "_U";
+		}
+		s.setParameter("time_dl_max",downtime);
+		s.setParameter("time_ul_max",uptime);
+		s.setParameter("test_order",testorder);
 		s.start();
 		I("startStopBtn").className="running";
 	}
-}
-function startStopUp(){ //start/stop button pressed
-        if(s.getState()==3){
-                //speedtest is running, abort
-                s.abort();
-        }else{
-                //test is not running, begin
-		s.setParameter("test_order","IP_U");
-                s.start();
-                I("upBtn").className="running";
-        }
-}
-function startStopDown(){ //start/stop button pressed
-        if(s.getState()==3){
-                //speedtest is running, abort
-                s.abort();
-        }else{
-                //test is not running, begin
-		s.setParameter("test_order","IP_D");
-                s.start();
-                I("downBtn").className="running";
-        }
 }
 
 
@@ -91,7 +88,7 @@ function I(id){return document.getElementById(id);}
 	h1{
 		color:#404040;
 	}
-	#startStopBtn,#upBtn,#downBtn,#resetBtn{
+	#startStopBtn,#resetBtn{
 		display:inline-block;
 		margin:0 auto;
 		color:#6060AA;
@@ -105,13 +102,26 @@ function I(id){return document.getElementById(id);}
 		cursor:pointer;
 		box-shadow: 0 0 0 rgba(0,0,0,0.1), inset 0 0 0 rgba(0,0,0,0.1);
 	}
-	#startStopBtn:hover,#upBtn:hover,#downBtn:hover,#resetBtn:hover{
+	#startStopBtn:hover,#resetBtn:hover{
 		box-shadow: 0 0 2em rgba(0,0,0,0.1), inset 0 0 1em rgba(0,0,0,0.1);
 	}
-	#startStopBtn.running,#upBtn.running,#downBtn.running{
+	#startStopBtn.running{
 		background-color:#FF3030;
 		border-color:#FF6060;
 		color:#FFFFFF;
+	}
+	#startStopBtn:before{
+		content:"Start";
+	}
+	#startStopBtn.running:before{
+		content:"Abort";
+	}
+	#testtime{
+		margin-top:2em;
+		margin-bottom:0.5em;
+	}
+	#downtime,#uptime{
+		margin:1em;
 	}
 	#test{
 		margin-top:2em;
@@ -195,11 +205,29 @@ function I(id){return document.getElementById(id);}
 </style>
 </head>
 <body>
-<h1>LibreSpeed Test</h1>
-<div id="startStopBtn" onclick="startStop()">Full Test</div>
-<div id="downBtn" onclick="startStopDown()">Download</div>
-<div id="upBtn" onclick="startStopUp()">Upload</div>
+<h1>Speed Test</h1>
+<div id="startStopBtn" onclick="startStop()"></div>
 <div id="resetBtn" onclick="location.reload()">Reset</div>
+<div id="testtime">
+<label for="downtime">Download Test (s)</label>
+<select id="downtime">
+  <option value="0">0</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="5" selected="selected">5</option>
+  <option value="10">10</option>
+  <option value="20">20</option>
+</select>
+<label for="uptime">Upload Test (s)</label>
+<select id="uptime">
+  <option value="0">0</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="5" selected="selected">5</option>
+  <option value="10">10</option>
+  <option value="20">20</option>
+</select>
+</div>
 <div id="test">
     <div id="progressBar"><div id="progress"></div></div>
 	<div class="testGroup">
