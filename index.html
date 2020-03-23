@@ -15,8 +15,11 @@ s.setParameter("getIp_ispInfo",false);
 
 s.onupdate=function(data){ //callback to update data in UI
     I("ip").textContent=data.clientIp;
-    I("dlText").textContent=(data.testState==1&&data.dlStatus==0)?"...":data.dlStatus;
-    I("ulText").textContent=(data.testState==3&&data.ulStatus==0)?"...":data.ulStatus;
+    I("dlText").textContent=(data.testState==1&&data.dlStatus==0)?"...":(Number(data.dlStatus).toFixed(1));
+    I("ulText").textContent=(data.testState==3&&data.ulStatus==0)?"...":(Number(data.ulStatus).toFixed(1));
+    var mibfactor=8*1.024*1.024;
+    I("dlMText").textContent=(data.testState==1&&data.dlStatus==0)?"...":(Number(data.dlStatus)/mibfactor).toFixed(2);
+    I("ulMText").textContent=(data.testState==3&&data.ulStatus==0)?"...":(Number(data.ulStatus)/mibfactor).toFixed(2);
     I("pingText").textContent=data.pingStatus;
     I("jitText").textContent=data.jitterStatus;
     var factor=2;
@@ -57,6 +60,7 @@ function startStop(){ //start/stop button pressed
 		s.setParameter("time_dl_max",downtime);
 		s.setParameter("time_ul_max",uptime);
 		s.setParameter("test_order",testorder);
+		//s.setParameter("useMebibits",true);
 		s.start();
 		I("startStopBtn").className="running";
 	}
@@ -67,6 +71,8 @@ function startStop(){ //start/stop button pressed
 function initUI(){
 	I("dlText").textContent="";
 	I("ulText").textContent="";
+	I("dlMText").textContent="";
+	I("ulMText").textContent="";
 	I("pingText").textContent="";
 	I("jitText").textContent="";
 	I("ip").textContent="";
@@ -148,10 +154,10 @@ function I(id){return document.getElementById(id);}
 		font-size:2.5em;
 		z-index:9;
 	}
-	#dlText{
+	#dlText,#dlMText{
 		color:#6060AA;
 	}
-	#ulText{
+	#ulText,#ulMText{
 		color:#309030;
 	}
 	#pingText,#jitText{
@@ -254,6 +260,18 @@ function I(id){return document.getElementById(id);}
 			<div class="unit">ms</div>
 		</div>
 	</div>
+        <div class="testGroup">
+                <div class="testArea">
+                        <div class="testName">Download</div>
+                        <div id="dlMText" class="meterText"></div>
+                        <div class="unit">MiB/s</div>
+                </div>
+                <div class="testArea">
+                        <div class="testName">Upload</div>
+                        <div id="ulMText" class="meterText"></div>
+                        <div class="unit">MiB/s</div>
+                </div>
+        </div>
 	<div id="ipArea">
 		IP Address: <span id="ip"></span>
 	</div>
